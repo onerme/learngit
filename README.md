@@ -24,23 +24,23 @@
 
 > `git branch --set-upstream branch-name origin/branch-name`指定本地分支和远程分支的链接关系(如果git pull提示“no tracking information”)
 
-> ``
+> `git tag <name>`打一个新标签
 
-> ``
+> `git tag`查看所有标签
 
-> ``
+> `git log --pretty=oneline --abbrev-commit`查看历史提交记录
 
-> ``
+> `git show <tagname>`查看标签信息
 
-> ``
+> `git tag -a v0.1 -m "version 0.1 released" 3628164`创建带有说明的标签，用`-a`指定标签名，`-m`指定说明文字
 
-> ``
+> `git push origin <tagname>`推送一个本地标签
 
-> ``
+> `git push origin --tags`推送全部未推送过的本地标签
 
-> ``
+> `git tag -d <tagname>`删除一个本地标签
 
-> ``
+> `git push origin :refs/tags/<tagname>`删除一个远程标签
 
 > ``
 
