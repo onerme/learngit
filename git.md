@@ -317,4 +317,378 @@ $ git branch -d feature1
 Deleted branch feature1 (was 75a857c).
 ```
 
-工作完成。
+### 分支管理策略
+
+通常，合并分支时，如果可能，Git会用`Fast forward`模式，但这种模式下，删除分支后，会丢掉分支信息。
+
+如果要强制禁用`Fast forward`模式，Git就会在merge时生成一个新的commit，这样，从分支历史上就可以看出分支信息。
+
+准备合并`dev`分支，请注意`--no-ff`参数，表示禁用`Fast forward`：
+
+```
+$ git merge --no-ff -m "merge with no-ff" dev
+Merge made by the 'recursive' strategy.
+ readme.txt |    1 +
+ 1 file changed, 1 insertion(+)
+ ```
+
+因为本次合并要创建一个新的commit，所以加上`-m`参数，把commit描述写进去。
+
+### bug分支
+
+Git还提供了一个`stash`功能，可以把当前工作现场“储藏”起来，等以后恢复现场后继续工作：
+
+```bash
+$ git stash
+Saved working directory and index state WIP on dev: 6224937 add merge
+HEAD is now at 6224937 add merge
+```
+
+现在，用`git status`查看工作区，就是干净的（除非有没有被Git管理的文件），因此可以放心地创建分支来修复bug。
+
+首先确定要在哪个分支上修复bug，假定需要在`master`分支上修复，就从`master`创建临时分支：
+
+```
+$ git checkout master
+Switched to branch 'master'
+Your branch is ahead of 'origin/master' by 6 commits.
+$ git checkout -b issue-101
+Switched to a new branch 'issue-101'
+```
+
+现在修复bug，需要把“Git is free software ...”改为“Git is a free software ...”，然后提交：
+
+```
+$ git add readme.txt 
+$ git commit -m "fix bug 101"
+[issue-101 cc17032] fix bug 101
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+ ```
+
+修复完成后，切换到`master`分支，并完成合并，最后删除`issue-101`分支：
+
+```
+$ git checkout master
+Switched to branch 'master'
+Your branch is ahead of 'origin/master' by 2 commits.
+$ git merge --no-ff -m "merged bug fix 101" issue-101
+Merge made by the 'recursive' strategy.
+ readme.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+$ git branch -d issue-101
+Deleted branch issue-101 (was cc17032).
+```
+
+接着回到dev分支干活了！
+
+```
+$ git checkout dev
+Switched to branch 'dev'
+$ git status
+# On branch dev
+nothing to commit (working directory clean)
+```
+
+工作区是干净的，刚才的工作现场存到哪去了？用`git stash list`命令看看：
+
+```
+$ git stash list
+stash@{0}: WIP on dev: 6224937 add merge
+```
+
+工作现场还在，Git把stash内容存在某个地方了，但是需要恢复一下，有两个办法：
+
+一是用`git stash apply`恢复，但是恢复后，`stash`内容并不删除，你需要用`git stash drop`来删除；
+
+另一种方式是用`git stash pop`，恢复的同时把`stash`内容也删了：
+
+```
+$ git stash pop
+# On branch dev
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   hello.py
+#
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       modified:   readme.txt
+#
+Dropped refs/stash@{0} (f624f8e5f082f2df2bed8a4e09c12fd2943bdd40)
+```
+
+再用`git stash list`查看，就看不到任何`stash`内容了：
+
+```
+$ git stash list
+```
+
+你可以多次stash，恢复的时候，先用git stash list查看，然后恢复指定的stash，用命令：
+
+```
+$ git stash apply stash@{0}
+```
+
+### Feature分支
+
+添加一个新功能时，你肯定不希望因为一些实验性质的代码，把主分支搞乱了，所以，每添加一个新功能，最好新建一个feature分支，在上面开发，完成后，合并，最后，删除该feature分支。
+
+### 多人协作
+
+当你从远程仓库克隆时，实际上`Git`自动把本地的`master`分支和远程的master分支对应起来了，并且，远程仓库的默认名称是origin。
+
+要查看远程库的信息，用`git remote：`
+
+```
+$ git remote
+origin
+```
+
+或者，用`git remote -v`显示更详细的信息：
+
+```
+$ git remote -v
+origin  git@github.com:michaelliao/learngit.git (fetch)
+origin  git@github.com:michaelliao/learngit.git (push)
+```
+
+上面显示了可以抓取和推送的`origin`的地址。如果没有推送权限，就看不到push的地址。
+
+#### 推送分支
+
+推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上：
+
+```
+$ git push origin master
+```
+
+如果要推送其他分支，比如`dev`，就改成：
+
+```
+$ git push origin dev
+```
+
+但是，并不是一定要把本地分支往远程推送，那么，哪些分支需要推送，哪些不需要呢？
+
+`master`分支是主分支，因此要时刻与远程同步；
+
+`dev`分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步；
+
+`bug`分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug；
+
+`feature`分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
+
+#### 抓取分支
+
+多人协作时，大家都会往master和dev分支上推送各自的修改。
+
+> `git branch`命令查看本地分支：
+
+```
+$ git branch
+* master
+```
+
+现在，你的小伙伴要在`dev`分支上开发，就必须创建远程`origin`的`dev`分支到本地，于是他用这个命令创建本地`dev`分支：
+
+```
+$ git checkout -b dev origin/dev
+```
+
+现在，他就可以在`dev`上继续修改，然后，时不时地把`dev`分支`push`到远程：
+
+ 你的小伙伴已经向`origin/dev`分支推送了他的提交，而碰巧你也对同样的文件作了修改，并试图推送：
+
+```
+$ git push origin dev
+To git@github.com:michaelliao/learngit.git
+ ! [rejected]        dev -> dev (non-fast-forward)
+error: failed to push some refs to 'git@github.com:michaelliao/learngit.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Merge the remote changes (e.g. 'git pull')
+hint: before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+```
+
+**推送失败**，因为你的小伙伴的最新提交和你试图推送的提交有冲突，解决办法也很简单，Git已经提示我们，先用`git pull`把最新的提交从`origin/dev`抓下来，然后，在本地合并，解决冲突，再推送：
+
+```
+$ git pull
+remote: Counting objects: 5, done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 0), reused 3 (delta 0)
+Unpacking objects: 100% (3/3), done.
+From github.com:michaelliao/learngit
+   fc38031..291bea8  dev        -> origin/dev
+There is no tracking information for the current branch.
+Please specify which branch you want to merge with.
+See git-pull(1) for details
+
+    git pull <remote> <branch>
+
+If you wish to set tracking information for this branch you can do so with:
+
+    git branch --set-upstream dev origin/<branch>
+```
+
+`git pull`也失败了，原因是没有指定本地`dev`分支与远程`origin/dev`分支的链接，根据提示，设置`dev和origin/dev`的链接：
+
+```
+$ git branch --set-upstream dev origin/dev
+Branch dev set up to track remote branch dev from origin.
+```
+
+再pull：
+
+```
+$ git pull
+Auto-merging hello.py
+CONFLICT (content): Merge conflict in hello.py
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+这回git pull成功，但是合并有冲突，需要手动解决，解决的方法和分支管理中的解决冲突完全一样。解决后，提交，再push：
+
+```
+$ git commit -m "merge & fix hello.py"
+[dev adca45d] merge & fix hello.py
+$ git push origin dev
+Counting objects: 10, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (6/6), 747 bytes, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To git@github.com:michaelliao/learngit.git
+   291bea8..adca45d  dev -> dev
+```
+
+ 因此，多人协作的工作模式通常是这样：
+
+首先，可以试图用`git push origin branch-name`推送自己的修改；
+
+如果推送失败，则因为远程分支比你的本地更新，需要先用`git pull`试图合并；
+
+如果合并有冲突，则解决冲突，并在本地提交；
+
+没有冲突或者解决掉冲突后，再用`git push origin branch-name`推送就能成功！
+
+如果`git pull`提示“no tracking information”，则说明本地分支和远程分支的链接关系没有创建，用命令`git branch --set-upstream branch-name origin/branch-name`。
+
+这就是多人协作的工作模式，一旦熟悉了，就非常简单。
+
+## 标签管理
+
+发布一个版本时，我们通常先在版本库中打一个标签（tag），这样，就唯一确定了打标签时刻的版本。将来无论什么时候，取某个标签的版本，就是把那个打标签的时刻的历史版本取出来。所以，标签也是版本库的一个快照。
+
+### 创建标签
+
+在Git中打标签非常简单，首先，切换到需要打标签的分支上：
+
+$ git branch
+* dev
+  master
+$ git checkout master
+Switched to branch 'master'
+然后，敲命令git tag <name>就可以打一个新标签：
+
+$ git tag v1.0
+可以用命令git tag查看所有标签：
+
+$ git tag
+v1.0
+默认标签是打在最新提交的commit上的。有时候，如果忘了打标签，比如，现在已经是周五了，但应该在周一打的标签没有打，怎么办？
+
+方法是找到历史提交的commit id，然后打上就可以了：
+
+$ git log --pretty=oneline --abbrev-commit
+6a5819e merged bug fix 101
+cc17032 fix bug 101
+7825a50 merge with no-ff
+6224937 add merge
+59bc1cb conflict fixed
+400b400 & simple
+75a857c AND simple
+fec145a branch test
+d17efd8 remove test.txt
+...
+比方说要对add merge这次提交打标签，它对应的commit id是6224937，敲入命令：
+
+$ git tag v0.9 6224937
+再用命令git tag查看标签：
+
+$ git tag
+v0.9
+v1.0
+注意，标签不是按时间顺序列出，而是按字母排序的。可以用git show <tagname>查看标签信息：
+
+$ git show v0.9
+commit 622493706ab447b6bb37e4e2a2f276a20fed2ab4
+Author: Michael Liao <askxuefeng@gmail.com>
+Date:   Thu Aug 22 11:22:08 2013 +0800
+
+    add merge
+...
+可以看到，v0.9确实打在add merge这次提交上。
+
+还可以创建带有说明的标签，用-a指定标签名，-m指定说明文字：
+
+$ git tag -a v0.1 -m "version 0.1 released" 3628164
+用命令git show <tagname>可以看到说明文字：
+
+$ git show v0.1
+tag v0.1
+Tagger: Michael Liao <askxuefeng@gmail.com>
+Date:   Mon Aug 26 07:28:11 2013 +0800
+
+version 0.1 released
+
+commit 3628164fb26d48395383f8f31179f24e0882e1e0
+Author: Michael Liao <askxuefeng@gmail.com>
+Date:   Tue Aug 20 15:11:49 2013 +0800
+
+    append GPL
+还可以通过-s用私钥签名一个标签：
+
+$ git tag -s v0.2 -m "signed version 0.2 released" fec145a
+签名采用PGP签名，因此，必须首先安装gpg（GnuPG），如果没有找到gpg，或者没有gpg密钥对，就会报错：
+
+gpg: signing failed: secret key not available
+error: gpg failed to sign the data
+error: unable to sign the tag
+如果报错，请参考GnuPG帮助文档配置Key。
+
+用命令git show <tagname>可以看到PGP签名信息：
+
+$ git show v0.2
+tag v0.2
+Tagger: Michael Liao <askxuefeng@gmail.com>
+Date:   Mon Aug 26 07:28:33 2013 +0800
+
+signed version 0.2 released
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (Darwin)
+
+iQEcBAABAgAGBQJSGpMhAAoJEPUxHyDAhBpT4QQIAKeHfR3bo...
+-----END PGP SIGNATURE-----
+
+commit fec145accd63cdc9ed95a2f557ea0658a2a6537f
+Author: Michael Liao <askxuefeng@gmail.com>
+Date:   Thu Aug 22 10:37:30 2013 +0800
+
+    branch test
+用PGP签名的标签是不可伪造的，因为可以验证PGP签名。验证签名的方法比较复杂，这里就不介绍了。
+
+
+0:00
+
+小结
+
+命令git tag <name>用于新建一个标签，默认为HEAD，也可以指定一个commit id；
+
+git tag -a <tagname> -m "blablabla..."可以指定标签信息；
+
+git tag -s <tagname> -m "blablabla..."可以用PGP签名标签；
+
+命令git tag可以查看所有标签。
