@@ -18,6 +18,8 @@
 
 > `git remote -v`显示更详细的远程库信息
 
+> `git remote rm <remotename>`删除已有的GitHub远程库
+
 > `git checkout -b dev origin/dev`创建远程origin的dev分支到本地
 
 > ` git pull`获取最新提交
@@ -42,15 +44,13 @@
 
 > `git push origin :refs/tags/<tagname>`删除一个远程标签
 
-> ``
+> `$ git config --global color.ui true`Git会适当地显示不同的颜色
 
-> ``
+> `git add -f <filename>`强制添加到Git
 
-> ``
+> `git check-ignore -v <filename>`是否排除文件
 
-> ``
-
-> ``
+> `git config --global alias.st status`命令简写
 
 > ``
 

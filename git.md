@@ -765,3 +765,252 @@ $ git push origin :refs/tags/v0.9
 To git@github.com:michaelliao/learngit.git
  - [deleted]         v0.9
  ```
+## 使用码云
+
+如果在使用命令`git remote add`时报错：
+
+```
+git remote add origin git@gitee.com:liaoxuefeng/learngit.git
+fatal: remote origin already exists.
+```
+
+这说明本地库已经关联了一个名叫`origin`的远程库，此时，可以先用`git remote -v`查看远程库信息：
+
+```
+git remote -v
+origin    git@github.com:michaelliao/learngit.git (fetch)
+origin    git@github.com:michaelliao/learngit.git (push)
+```
+
+可以看到，本地库已经关联了origin的远程库，并且，该远程库指向GitHub。
+
+我们可以删除已有的GitHub远程库：
+
+因为git本身是分布式版本控制系统，可以同步到另外一个远程库，当然也可以同步到另外两个远程库。
+
+使用多个远程库时，我们要注意，git给远程库起的默认名称是origin，如果有多个远程库，我们**需要用不同的名称**来标识不同的远程库。
+
+仍然以learngit本地库为例，我们先删除已关联的名为origin的远程库：
+
+```
+git remote rm origin
+```
+
+然后，先关联GitHub的远程库：
+
+```
+git remote add github git@github.com:michaelliao/learngit.git
+```
+
+注意，远程库的名称叫github，不叫origin了。
+
+接着，再关联码云的远程库：
+
+```
+git remote add gitee git@gitee.com:liaoxuefeng/learngit.git
+```
+
+同样注意，远程库的名称叫gitee，不叫origin。
+
+现在，我们用`git remote -v`查看远程库信息，可以看到两个远程库：
+`
+```
+git remote -v
+gitee    git@gitee.com:liaoxuefeng/learngit.git (fetch)
+gitee    git@gitee.com:liaoxuefeng/learngit.git (push)
+github    git@github.com:michaelliao/learngit.git (fetch)
+github    git@github.com:michaelliao/learngit.git (push)
+```
+
+如果要推送到GitHub，使用命令：
+
+```
+git push github master
+```
+
+如果要推送到码云，使用命令：
+
+```
+git push gitee master
+```
+
+这样一来，我们的本地库就可以同时与多个远程库互相同步：
+
+## 自定义Git
+
+让Git显示颜色，会让命令输出看起来更醒目：
+
+```
+$ git config --global color.ui true
+```
+
+### 忽略特殊文件
+
+在Git工作区的根目录下创建一个特殊的.gitignore文件，然后把要忽略的文件名填进去，Git就会自动忽略这些文件。
+
+不需要从头写`.gitignore`文件，GitHub已经为我们准备了各种配置文件，只需要组合一下就可以使用了。所有配置文件可以直接在线浏览：<https://github.com/github/gitignore>
+
+忽略文件的原则是：
+
+1. 忽略操作系统自动生成的文件，比如缩略图等；
+1. 忽略编译生成的中间文件、可执行文件等，也就是如果一个文件是通过另一个文件自动生成的，那自动生成的文件就没必要放进版本库，比如Java编译产生的.class文件；
+1. 忽略你自己的带有敏感信息的配置文件，比如存放口令的配置文件。
+
+最后一步就是把`.gitignore`也提交到Git，就完成了
+
+有些时候，你想添加一个文件到Git，但发现添加不了，原因是这个文件被`.gitignore`忽略了：
+
+```
+$ git add App.class
+The following paths are ignored by one of your .gitignore files:
+App.class
+Use -f if you really want to add them.
+```
+
+如果你确实想添加该文件，可以用`-f`强制添加到Git：
+
+```
+$ git add -f App.class
+```
+
+或者你发现，可能是`.gitignore`写得有问题，需要找出来到底哪个规则写错了，可以用`git check-ignore`命令检查：
+
+```
+$ git check-ignore -v App.class
+.gitignore:3:*.class    App.class
+```
+
+Git会告诉我们，`.gitignore`的第3行规则忽略了该文件，于是我们就可以知道应该修订哪个规则。
+
+### 配置别名
+
+co表示checkout，ci表示commit，br表示branch：
+
+```
+$ git config --global alias.co checkout
+$ git config --global alias.ci commit
+$ git config --global alias.br branch
+```
+
+lg配置成了：
+
+```
+git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+```
+
+### 配置文件
+
+配置Git的时候，加上`--global`是针对当前用户起作用的，如果不加，那只针对当前的仓库起作用。
+
+配置文件放哪了？每个仓库的Git配置文件都放在`.git/config`文件中：
+
+```
+$ cat .git/config 
+[core]
+    repositoryformatversion = 0
+    filemode = true
+    bare = false
+    logallrefupdates = true
+    ignorecase = true
+    precomposeunicode = true
+[remote "origin"]
+    url = git@github.com:michaelliao/learngit.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+    remote = origin
+    merge = refs/heads/master
+[alias]
+    last = log -1
+```
+
+别名就在`[alias]`后面，要删除别名，直接把对应的行删掉即可。
+
+而当前用户的Git配置文件放在用户主目录下的一个隐藏文件`.gitconfig`中：
+
+```
+$ cat .gitconfig
+[alias]
+    co = checkout
+    ci = commit
+    br = branch
+    st = status
+[user]
+    name = Your Name
+    email = your@email.com
+```
+
+配置别名也可以直接修改这个文件，如果改错了，可以删掉文件重新通过命令配置。
+
+## 搭建Git服务器
+
+建Git服务器需要准备一台运行Linux的机器，强烈推荐用Ubuntu或Debian，这样，通过几条简单的`apt`命令就可以完成安装。
+
+假设你已经有`sudo`权限的用户账号，下面，正式开始安装。
+
+第一步，安装`git`：
+
+```
+$ sudo apt-get install git
+```
+
+第二步，创建一个`git`用户，用来运行`git`服务：
+
+```
+$ sudo adduser git
+```
+
+第三步，创建证书登录：
+
+收集所有需要登录的用户的公钥，就是他们自己的`id_rsa.pub`文件，把所有公钥导入到`/home/git/.ssh/authorized_keys`文件里，一行一个。
+
+第四步，初始化Git仓库：
+
+先选定一个目录作为`Git`仓库，假定是`/srv/sample.git`，在`/srv`目录下输入命令：
+
+```
+$ sudo git init --bare sample.git
+```
+
+Git就会创建一个裸仓库，裸仓库没有工作区，因为服务器上的Git仓库纯粹是为了共享，所以不让用户直接登录到服务器上去改工作区，并且服务器上的Git仓库通常都以`.git`结尾。然后，把owner改为`git`：
+
+```
+$ sudo chown -R git:git sample.git
+```
+
+第五步，禁用`shell`登录：
+
+出于安全考虑，第二步创建的git用户不允许登录shell，这可以通过编辑`/etc/passwd`文件完成。找到类似下面的一行：
+
+```
+git:x:1001:1001:,,,:/home/git:/bin/bash
+```
+
+改为：
+
+```
+git:x:1001:1001:,,,:/home/git:/usr/bin/git-shell
+```
+
+这样，`git`用户可以正常通过ssh使用git，但无法登录shell，因为我们为`git`用户指定的`git-shell`每次一登录就自动退出。
+
+第六步，克隆远程仓库：
+
+现在，可以通过`git clon`e命令克隆远程仓库了，在各自的电脑上运行：
+
+```
+$ git clone git@server:/srv/sample.git
+Cloning into 'sample'...
+warning: You appear to have cloned an empty repository.
+```
+
+剩下的推送就简单了。
+
+管理公钥
+
+如果团队很小，把每个人的公钥收集起来放到服务器的`/home/git/.ssh/authorized_keys`文件里就是可行的。如果团队有几百号人，就没法这么玩了，这时，可以用[Gitosis][]来管理公钥。
+
+国外网友制作的[Git Cheat Sheet](https://pan.baidu.com/s/1kU5OCOB#path=%252Fpub%252Fgit)
+
+[Git的官方网站](http://git-scm.com/)
+
+[Gitosis]:https://github.com/res0nat0r/gitosis
