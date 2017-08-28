@@ -28,8 +28,6 @@
 
 > `git init`初始化本地版本库
 
-> ` git pull`获取最新提交
-
 > `$ git config --global color.ui true`Git会适当地显示不同的颜色
 
 > `git config --global user.name "Your Name"`设置Git全局用户名
@@ -46,8 +44,16 @@
 
 > `git commit -m "wrote a readme file"`一次性把暂存区的所有修改提交到分支  
 
+> `git status`查看仓库状态
 
-## 回退
+> `git diff <file>`查看差异
+
+> `git log`查看历史提交记录
+
+> `git log --pretty=oneline --abbrev-commit`查看历史提交记录简略列表
+
+
+## 修改
 
 > `git reset --hard HEAD^`回退到上一个版本
 
@@ -63,9 +69,13 @@
 
 ## 远程仓库
 
+> `git push origin branch-name`把该分支上的所有本地提交推送到远程库
+
 > `ssh-keygen -t rsa -C "youremail@example.com"`创建SSH Key
 
 > `git remote add origin git@github.com:onerme/learngit.git`本地仓库关联GitHub仓库
+
+> ` git push -u origin master`把当前分支master推送到远程仓库，只有第一次加`-u`
 
 > `git clone`克隆远程版本库
 
@@ -84,17 +94,15 @@
 
 > `git merge <name>`合并某分支到当前分支
 
-> ` git push -u origin master`把当前分支master推送到远程仓库，只有第一次加`-u`
-
-> `git push origin branch-name`把该分支上的所有本地提交推送到远程库
-
 > `git branch -d <name>`删除分支
 
 > `git branch -D <name>`强行删除分支
 
-> `git push origin :<name>`删除远程分支(origin 后面有空格)
+> `git push origin :br`删除远程分支(origin 后面有空格)
 
 > `git merge --no-ff -m "merge with no-ff" dev`表示禁用Fast forward
+
+> ` git pull`获取最新提交
 
 > `git branch --set-upstream branch-name origin/branch-name`指定本地分支和远程分支的链接关系(如果git pull提示“no tracking information”)
 
