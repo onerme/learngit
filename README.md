@@ -53,9 +53,7 @@
 > `git log --pretty=oneline --abbrev-commit`查看历史提交记录简略列表
 
 
-## 修改删除
-
-> `git reflog`历史命令记录
+## 修改
 
 > `git reset --hard HEAD^`回退到上一个版本
 
@@ -99,6 +97,8 @@
 > `git branch -d <name>`删除分支
 
 > `git branch -D <name>`强行删除分支
+
+> `git push origin :br`删除远程分支(origin 后面有空格)
 
 > `git merge --no-ff -m "merge with no-ff" dev`表示禁用Fast forward
 
