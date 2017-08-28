@@ -43,13 +43,19 @@ $ git config --global user.email "email@example.com"
 
 因为Git是分布式版本控制系统，所以，每个机器都必须自报家门：你的名字和Email地址。
 
+让Git显示颜色，会让命令输出看起来更醒目
+
+```
+$ git config --global color.ui true
+```
+
 注意`git config`命令的`--global`参数，用了这个参数，表示你这台机器上所有的Git仓库都会使用这个配置，当然也可以对某个仓库指定不同的用户名和Email地址。
 
 ## 创建版本库
 
 什么是版本库呢？版本库又名仓库，英文名**repository**，你可以简单理解成一个目录，这个目录里面的所有文件都可以被Git管理起来，每个文件的修改、删除，Git都能跟踪，以便任何时刻都可以追踪历史，或者在将来某个时刻可以“还原”。
 
-通过`git init`命令把这个目录变成Git可以管理的仓库：
+通过`git init`命令初始化仓库：
 
 ```
 $ git init
@@ -58,11 +64,13 @@ Initialized empty Git repository in /Users/michael/learngit/.git/
 
 如果你没有看到`.git`目录，那是因为这个目录默认是隐藏的，用`ls -ah`命令就可以看见
 
+### 把文件添加到版本库
+
 添加文件到Git仓库，分两步：
 
 - 第一步，使用命令`git add filename`，注意，可反复多次使用，添加多个文件；
 
-- 第二步，使用命令`git commit`，完成。
+- 第二步，使用命令`git commit -m <filename>`，完成。
 
 简单解释一下`git commit`命令，`-m`后面输入的是本次提交的说明，可以输入任意内容，当然最好是有意义的，这样你就能从历史记录里方便地找到改动记录。
 
@@ -70,7 +78,33 @@ Initialized empty Git repository in /Users/michael/learngit/.git/
 
 > `git status`命令可以让我们时刻掌握仓库当前的状态
 
+```
+$ git status
+# On branch master
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#    modified:   readme.txt
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+
+`git status`命令可以让我们时刻掌握仓库当前的状态，上面的命令告诉我们，readme.txt被修改过了，但还没有准备提交的修改。
+
 > `git diff`顾名思义就是查看difference，显示的格式正是Unix通用的diff格式,显示修改了什么内容。
+
+```
+$ git diff readme.txt 
+diff --git a/readme.txt b/readme.txt
+index 46d49bf..9247db6 100644
+--- a/readme.txt
++++ b/readme.txt
+@@ -1,2 +1,2 @@
+-Git is a version control system.
++Git is a distributed version control system.
+ Git is free software.
+ ```
 
 ### 版本回退
 
@@ -123,7 +157,7 @@ Git的版本库里存了很多东西，其中最重要的就是称为`stage`（�
 
 > 要从版本库中删除该文件，那就用命令`git rm`删掉，并且`git commit`：
 
-> `git checkout`其实是用版本库里的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。
+> `git checkout --<filename>`其实是用版本库里的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。
 
 ## 远程仓库
 
@@ -137,7 +171,7 @@ $ ssh-keygen -t rsa -C "youremail@example.com"
 
 你需要把邮件地址换成你自己的邮件地址，然后一路回车，使用默认值即可，由于这个Key也不是用于军事目的，所以也无需设置密码。
 
-如果一切顺利的话，可以在**用户主目录**里找到.ssh目录，里面有 `id_rsa`和`id_rsa.pub`两个文件，这两个就是SSH Key的秘钥对，`id_rsa`是私钥，不能泄露出去，`id_rsa.pub`是公钥，可以放心地告诉任何人。
+如果一切顺利的话，可以在**用户主目录**里找到`.ssh`目录，里面有 `id_rsa`和`id_rsa.pub`两个文件，这两个就是SSH Key的秘钥对，`id_rsa`是私钥，不能泄露出去，`id_rsa.pub`是公钥，可以放心地告诉任何人。
 
 第2步：登陆GitHub，打开“Account settings”，“SSH Keys”页面：
 
@@ -145,7 +179,7 @@ $ ssh-keygen -t rsa -C "youremail@example.com"
 
 ### 添加远程库
 
-1. 要关联一个远程库，使用命令`git remote add origin git@server-name:path/repo-name.git`；
+1. 要关联一个远程库，使用命令`git remote add origin git@github.com:onerme/learngit.git`；
 
 1. 关联后，使用命令`git push -u origin master`第一次推送`master`分支的所有内容；
 
@@ -165,9 +199,9 @@ Git支持多种协议，包括`https`，但通过`ssh`支持的原生`git`协议
 
 ## 分支管理
 
-> 创建了一个属于你自己的分支，别人看不到，还继续在原来的分支上正常工作，而你在自己的分支上干活，想提交就提交，直到开发完毕后，再一次性合并到原来的分支上，这样，既安全，又不影响别人工作。
+创建了一个属于你自己的分支，别人看不到，还继续在原来的分支上正常工作，而你在自己的分支上干活，想提交就提交，直到开发完毕后，再一次性合并到原来的分支上，这样，既安全，又不影响别人工作。
 
-### 创建与合并分支
+### 创建分支
 
 首先，我们创建`dev`分支，然后切换到`dev`分支：
 
@@ -190,7 +224,7 @@ Switched to branch 'dev'
 $ git branch
 * dev
   master
-  ```
+```
 
 `git branch`命令会列出所有分支，当前分支前面会标一个`*`号。
 
@@ -207,7 +241,7 @@ $ git add readme.txt
 $ git commit -m "branch test"
 [dev fec145a] branch test
  1 file changed, 1 insertion(+)
- ```
+```
 
 现在，`dev`分支的工作完成，我们就可以切换回`master`分支：
 
@@ -218,6 +252,8 @@ Switched to branch 'master'
 
 切换回`master`分支后，再查看一个readme.txt文件，刚才添加的内容不见了！因为那个提交是在dev分支上，而`master`分支此刻的提交点并没有变：
 
+### 合并分支
+
 现在，我们把`dev`分支的工作成果合并到`master`分支上：
 
 ```bash
@@ -226,13 +262,15 @@ Updating d17efd8..fec145a
 Fast-forward
  readme.txt |    1 +
  1 file changed, 1 insertion(+)
- ```
+```
 
 `git merge`命令用于合并指定分支到当前分支。合并后，再查看readme.txt的内容，就可以看到，和`dev`分支的最新提交是完全一样的。
 
 注意到上面的`Fast-forward`信息，Git告诉我们，这次合并是“快进模式”，也就是直接把`master`指向`dev`的当前提交，所以合并速度非常快。
 
 当然，也不是每次合并都能`Fast-forward`，我们后面会讲其他方式的合并。
+
+### 删除分支
 
 合并完成后，就可以放心地删除`dev`分支了：
 
@@ -248,6 +286,13 @@ $ git branch
 * master
 ```
 因为创建、合并和删除分支非常快，所以Git鼓励你使用分支完成某个任务，合并后再删掉分支，这和直接在`master`分支上工作效果是一样的，但过程更安全。
+
+强行删除分支：
+
+```
+$ git branch -D feature-vulcan
+Deleted branch feature-vulcan (was 756d4af).
+```
 
 ### 解决冲突
 
@@ -275,7 +320,7 @@ $ git status
 no changes added to commit (use "git add" and/or "git commit -a")
 ```
 
-我们可以直接查看readme.txt的内容：
+我们可以直接查看`cat readme.txt`的内容：
 
 ```bash
 Git is a distributed version control system.
@@ -435,7 +480,9 @@ $ git stash apply stash@{0}
 
 添加一个新功能时，你肯定不希望因为一些实验性质的代码，把主分支搞乱了，所以，每添加一个新功能，最好新建一个feature分支，在上面开发，完成后，合并，最后，删除该feature分支。
 
-### 多人协作
+## 多人协作
+
+### 查看远程库信息
 
 当你从远程仓库克隆时，实际上`Git`自动把本地的`master`分支和远程的master分支对应起来了，并且，远程仓库的默认名称是origin。
 
@@ -456,7 +503,7 @@ origin  git@github.com:michaelliao/learngit.git (push)
 
 上面显示了可以抓取和推送的`origin`的地址。如果没有推送权限，就看不到push的地址。
 
-#### 推送分支
+### 推送分支
 
 推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上：
 
@@ -715,9 +762,7 @@ Date:   Thu Aug 22 10:37:30 2013 +0800
 ```
 用PGP签名的标签是不可伪造的，因为可以验证PGP签名。验证签名的方法比较复杂，这里就不介绍了。
 
-### 操作标签
-
-#### 删除本地标签
+### 删除本地标签
 
 如果标签打错了，也可以删除：
 
@@ -737,7 +782,7 @@ To git@github.com:michaelliao/learngit.git
  * [new tag]         v1.0 -> v1.0
  ```
 
-#### 一次性推送全部尚未推送到远程的本地标签：
+### 推送全部标签到远程
 
 ```
 $ git push origin --tags
@@ -765,6 +810,7 @@ $ git push origin :refs/tags/v0.9
 To git@github.com:michaelliao/learngit.git
  - [deleted]         v0.9
  ```
+ 
 ## 使用码云
 
 如果在使用命令`git remote add`时报错：
