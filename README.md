@@ -71,6 +71,8 @@
 
 ## 远程仓库
 
+> `git push origin branch-name`把该分支上的所有本地提交推送到远程库
+
 > `ssh-keygen -t rsa -C "youremail@example.com"`创建SSH Key
 
 > `git remote add origin git@github.com:onerme/learngit.git`本地仓库关联GitHub仓库
@@ -99,8 +101,6 @@
 > `git branch -D <name>`强行删除分支
 
 > `git merge --no-ff -m "merge with no-ff" dev`表示禁用Fast forward
-
-> `git push origin branch-name`把该分支上的所有本地提交推送到远程库
 
 > ` git pull`获取最新提交
 
