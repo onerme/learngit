@@ -77,7 +77,7 @@
 
 > ` git push -u origin master`把当前分支master推送到远程仓库，只有第一次加`-u`
 
-> 这是因为Git使用SSH连接，而SSH连接在第一次验证GitHub服务器的Key时，需要你确认GitHub的Key的指纹信息是否真的来自GitHub的服务器，输入yes回车即可。
+> SSH连接在第一次验证GitHub服务器的Key时，需要你确认GitHub的Key的指纹信息是否真的来自GitHub的服务器，输入yes回车即可。
 
 > `git clone`克隆远程版本库
 
